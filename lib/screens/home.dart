@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class Home extends StatefulWidget {
   const Home({super.key});
@@ -16,6 +17,7 @@ class _HomeState extends State<Home> {
   String? resultadoBai;
   String? resultadoCid;
   String? resultadoUf;
+  String? resultadoCEP;
   bool _isVisible = false;
 
   _consultarCep() async {
@@ -27,18 +29,30 @@ class _HomeState extends State<Home> {
 
     final Map<String, dynamic> retorno = json.decode(response.body);
 
+    String cep = retorno["cep"];
     String logradouro = retorno["logradouro"];
     String cidade = retorno["localidade"];
     String bairro = retorno["bairro"];
     String uf = retorno["uf"];
 
     setState(() {
+      resultadoCEP = cep;
       resultadoLog = logradouro;
-      resultadoBai = cidade;
-      resultadoCid = bairro;
+      resultadoBai = bairro;
+      resultadoCid = cidade;
       resultadoUf = uf;
       _isVisible = true;
     });
+  }
+
+
+   _abrirGoogleMaps() async {
+    String url = "https://www.google.com/maps/search/$inputcep";
+    if (await canLaunchUrl(Uri.parse(url))) {
+      await launchUrl(Uri.parse(url));
+    } else {
+      throw 'Could not launch Maps';
+    }
   }
 
   @override
@@ -83,7 +97,7 @@ class _HomeState extends State<Home> {
                   textAlign: TextAlign.center,
                   keyboardType: TextInputType.number,
                   decoration: InputDecoration(
-                      border: OutlineInputBorder(),
+                      border: const OutlineInputBorder(),
                       labelText: "DIGITE UM CEP",
                       labelStyle:  TextStyle(color: Colors.blue[900])),
                   style: GoogleFonts.kanit(
@@ -92,21 +106,35 @@ class _HomeState extends State<Home> {
                     fontSize: 26.0,
                   )),
                 ),
-                Padding(
-                    padding: const EdgeInsets.only(top: 20.0, bottom: 20.0),
-                    child: SizedBox(
-                      height: 50.0,
-                      child: ElevatedButton(
-                        onPressed: _consultarCep,
-                        child: Text('PESQUISAR' ,
-                        style: GoogleFonts.kanit(
-                          textStyle: TextStyle(
-                            fontSize: 25,
-                            color: Colors.blue[900],
+                    Padding(
+                        padding: const EdgeInsets.only(top: 20.0, bottom: 20.0),
+                        child: SizedBox(
+                          height: 50.0,
+                          child: ElevatedButton(
+                            onPressed: _consultarCep,
+                            child: Text('PESQUISAR' ,
+                            style: GoogleFonts.kanit(
+                              textStyle: TextStyle(
+                                fontSize: 25,
+                                color: Colors.blue[900],
+                              ),
+                            )),
                           ),
-                        )),
-                      ),
-                    )),
+                        ),
+                    ),
+                Visibility(
+                  visible: _isVisible,
+                  child:
+                  Text(
+                      "CEP: $resultadoCEP",
+                      textAlign: TextAlign.center,
+                      style: GoogleFonts.kanit(
+                        textStyle: TextStyle(
+                          fontSize: 25,
+                          color: Colors.blue[900],
+                        ),)
+                  ),
+                ),
                 Visibility(
                   visible: _isVisible,
                   child:
@@ -159,6 +187,29 @@ class _HomeState extends State<Home> {
                         ),)
                   ),
                 ),
+
+
+                  //dificuldades para funcionar no mobile, via  chrome funciona
+
+                /*Visibility(
+                  visible: _isVisible,
+                  child:
+                  Padding(
+                      padding: const EdgeInsets.only(top: 20.0, bottom: 20.0),
+                      child: SizedBox(
+                        height: 50.0,
+                        child: ElevatedButton(
+                          onPressed: _abrirGoogleMaps,
+                          child: Text('VER NO GOOGLE MAPS' ,
+                              style: GoogleFonts.kanit(
+                                textStyle: TextStyle(
+                                  fontSize: 25,
+                                  color: Colors.blue[900],
+                                ),
+                              )),
+                        ),
+                      )),
+                ),*/
               ],
             ),
           ),
